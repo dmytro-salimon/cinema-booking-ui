@@ -4,7 +4,10 @@ Cross-Platform Mobile App Design and Development.
 Homework 3.
 
 ## Screenshots
-![Screen1](./screenshots/Screen1.png)
-![Screen2](./screenshots/Screen2.png)
-![Screen3](./screenshots/Screen3.png)
-![Screen4](./screenshots/Screen4.png)
+
+<p align="center">
+  <img src="./screenshots/Screen1.png" width="25%" />
+  <img src="./screenshots/Screen2.png" width="25%" />
+  <img src="./screenshots/Screen3.png" width="25%" />
+  <img src="./screenshots/Screen4.png" width="25%" />
+</p>
