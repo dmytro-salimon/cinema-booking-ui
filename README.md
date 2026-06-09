@@ -16,3 +16,8 @@ Homework 3.
   <img src="./screenshots/Screen3.png" width="25%" />
   <img src="./screenshots/Screen4.png" width="25%" />
 </p>
+
+<p align="center">
+  <img src="./screenshots/Screen5.png" width="25%" />
+  <img src="./screenshots/Screen6.png" width="25%" />
+</p>
