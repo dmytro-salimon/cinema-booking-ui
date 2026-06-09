@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScreenHeader from '../components/ScreenHeader';
 import PrimaryButton from '../components/PrimaryButton';
@@ -11,11 +11,11 @@ const MovieDetailsScreen = ({ route, navigation }: any) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader 
-        title={movieData?.title || 'Деталі фільму'} 
+        title={movieData?.title || 'Деталі'} 
         onBackPress={() => navigation.goBack()} 
       />
       
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {movieData?.imageUrl && (
           <Image 
             source={movieData.imageUrl} 
@@ -25,7 +25,14 @@ const MovieDetailsScreen = ({ route, navigation }: any) => {
         )}
         <Text style={styles.title}>{movieData?.title}</Text>
         <Text style={styles.subtitle}>{movieData?.subtitle}</Text>
-      </View>
+        
+        <View style={styles.descriptionBox}>
+          <Text style={styles.descriptionTitle}>Сюжет</Text>
+          <Text style={styles.descriptionText}>
+            {movieData?.description}
+          </Text>
+        </View>
+      </ScrollView>
 
       <View style={styles.footer}>
         <PrimaryButton 
@@ -42,14 +49,14 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#010101' 
   },
-  content: { 
-    flex: 1, 
+  scrollContent: { 
     alignItems: 'center',
     padding: 16,
+    paddingBottom: 40,
   },
   poster: {
-    width: 200,
-    height: 300,
+    width: 220,
+    height: 330,
     borderRadius: 16,
     marginBottom: 24,
   },
@@ -63,9 +70,28 @@ const styles = StyleSheet.create({
   subtitle: {
     color: '#71727A',
     fontSize: 14,
+    marginBottom: 24,
+  },
+  descriptionBox: {
+    width: '100%',
+    backgroundColor: '#1F2024',
+    padding: 16,
+    borderRadius: 16,
+  },
+  descriptionTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  descriptionText: {
+    color: '#D4D4D4',
+    fontSize: 14,
+    lineHeight: 22,
   },
   footer: {
     padding: 16,
+    backgroundColor: '#010101',
   }
 });
 
