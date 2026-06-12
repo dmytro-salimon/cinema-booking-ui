@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ThemeContext } from '../context/ThemeContext';
 
 interface SectionHeaderProps {
   title: string;
@@ -16,18 +17,23 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   accessoryText,
   onAccessoryPress,
 }) => {
+  const { colors } = useContext(ThemeContext);
+
   return (
     <View style={styles.container}>
       <Text style={[
         styles.baseTitle,
-        variant === 'default' ? styles.defaultTitle : styles.largeTitle
+        variant === 'default' ? styles.defaultTitle : styles.largeTitle,
+        { color: colors.text } 
       ]}>
         {title}
       </Text>
 
       {accessoryType === 'text' && accessoryText && (
         <TouchableOpacity onPress={onAccessoryPress} activeOpacity={0.7} disabled={!onAccessoryPress}>
-          <Text style={styles.accessoryText}>{accessoryText}</Text>
+          <Text style={[styles.accessoryText, { color: colors.textSecondary }]}>
+            {accessoryText}
+          </Text>
         </TouchableOpacity>
       )}
 
@@ -35,7 +41,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         <View style={styles.iconWrapper}>
           <TouchableOpacity style={styles.touchableArea} onPress={onAccessoryPress} activeOpacity={0.7}>
             <View style={styles.iconPlaceholder}>
-              <Text style={styles.iconText}>+</Text>
+              <Text style={[styles.iconText, { color: colors.text }]}>+</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -52,7 +58,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   baseTitle: {
-    color: '#FFFFFF',
     fontWeight: '800',
   },
   defaultTitle: {
@@ -65,7 +70,6 @@ const styles = StyleSheet.create({
     letterSpacing: 32 * -0.0069,
   },
   accessoryText: {
-    color: '#71727A',
     fontSize: 16,
   },
   iconWrapper: {
@@ -86,7 +90,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconText: {
-    color: '#FFFFFF',
     fontSize: 18,
     lineHeight: 20,
   }

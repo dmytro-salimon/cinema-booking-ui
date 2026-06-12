@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+
+// Імпортуємо контекст
+import { ThemeContext } from '../context/ThemeContext';
 
 interface MenuItemProps {
   title: string;
@@ -22,15 +25,18 @@ const MenuItem: React.FC<MenuItemProps> = ({
   onPress,
   hasDivider = false,
 }) => {
-  
+  // Дістаємо кольори та поточну тему (для divider)
+  const { colors, theme } = useContext(ThemeContext);
+
   const renderAccessory = () => {
     if (accessory === 'switch') {
       return (
         <Switch
           value={isSwitchOn}
           onValueChange={onSwitchChange}
-          trackColor={{ false: '#3E3E42', true: '#006FFD' }}
-          ios_backgroundColor="#3E3E42"
+          // Використовуємо кольори з контексту
+          trackColor={{ false: colors.textSecondary, true: colors.primary }}
+          ios_backgroundColor={colors.textSecondary}
         />
       );
     }
@@ -42,7 +48,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
     if (accessory === 'dropdown') iconText = '⌄';
 
     if (iconText) {
-      return <Text style={styles.icon}>{iconText}</Text>;
+      // Динамічний колір іконки
+      return <Text style={[styles.icon, { color: colors.text }]}>{iconText}</Text>;
     }
 
     return null;
@@ -50,23 +57,34 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
   const Component = onPress ? TouchableOpacity : View;
 
+  // Визначаємо колір лінії залежно від теми
+  const dividerColor = theme === 'dark' ? '#2C2D35' : '#E4E4E5';
+
   return (
     <Component
       style={[
         styles.container,
-        hasDivider && styles.divider
+        hasDivider && [styles.divider, { borderBottomColor: dividerColor }]
       ]}
       onPress={onPress}
       activeOpacity={0.7}
       disabled={!onPress}
     >
       <View style={styles.leftContent}>
-        <Text style={[styles.title, !subtitle && styles.titleNoMargin]}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        {/* Динамічні кольори для тексту */}
+        <Text style={[styles.title, !subtitle && styles.titleNoMargin, { color: colors.text }]}>
+          {title}
+        </Text>
+        {subtitle && (
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            {subtitle}
+          </Text>
+        )}
       </View>
 
       <View style={styles.rightContent}>
-        {detail && <Text style={styles.detail}>{detail}</Text>}
+        {/* Динамічний колір для деталей */}
+        {detail && <Text style={[styles.detail, { color: colors.text }]}>{detail}</Text>}
         {renderAccessory()}
       </View>
     </Component>
@@ -82,7 +100,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2D35',
+    // Прибрали borderBottomColor: '#2C2D35'
   },
   leftContent: {
     flex: 1,
@@ -93,27 +111,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 4,
+    // Прибрали color
   },
   titleNoMargin: {
     marginBottom: 0,
   },
   subtitle: {
-    color: '#71727A',
     fontSize: 12,
+    // Прибрали color
   },
   detail: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
     marginRight: 12,
+    // Прибрали color
   },
   icon: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    // Прибрали color
   },
 });
 

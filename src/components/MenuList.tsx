@@ -1,6 +1,8 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 import SectionHeader from './SectionHeader';
+
+import { ThemeContext } from '../context/ThemeContext';
 
 interface MenuListProps {
   title: string;
@@ -19,6 +21,8 @@ const MenuList: React.FC<MenuListProps> = ({
   accessoryText,
   onAccessoryPress
 }) => {
+  const { colors } = useContext(ThemeContext);
+
   return (
     <View style={styles.container}>
       <SectionHeader 
@@ -28,7 +32,7 @@ const MenuList: React.FC<MenuListProps> = ({
         accessoryText={accessoryText}
         onAccessoryPress={onAccessoryPress}
       />
-      <View style={styles.menuGroup}>
+      <View style={[styles.menuGroup, { backgroundColor: colors.surface }]}>
         {children}
       </View>
     </View>
@@ -41,7 +45,6 @@ const styles = StyleSheet.create({
   },
   menuGroup: {
     marginTop: 8,
-    backgroundColor: '#1F2024',
     borderRadius: 16,
     overflow: 'hidden',
   },
