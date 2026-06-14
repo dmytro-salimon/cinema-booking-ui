@@ -9,7 +9,6 @@ import { ThemeContext } from '../context/ThemeContext';
 
 const ProfileScreen = ({ navigation }: any) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
   const { theme, colors, toggleTheme } = useContext(ThemeContext);
 
   return (
