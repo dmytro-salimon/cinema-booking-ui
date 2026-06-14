@@ -1,8 +1,10 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 
 import { ROUTES } from '../constants/routes';
 import { ThemeContext } from '../context/ThemeContext';
@@ -19,7 +21,22 @@ import SuccessScreen from '../screens/SuccessScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const getIconForRoute = (routeName: string, color: string) => {
+const AnimatedTabIcon = ({ routeName, color, focused }: { routeName: string, color: string, focused: boolean }) => {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withTiming(focused ? 1.15 : 1, { 
+      duration: 250, 
+      easing: Easing.out(Easing.ease) 
+    });
+  }, [focused, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
   let iconSymbol = '';
   if (routeName === ROUTES.TAB_HOME) iconSymbol = '🎬'; 
   else if (routeName === ROUTES.TAB_SCHEDULE) iconSymbol = '🧭';
@@ -27,16 +44,23 @@ const getIconForRoute = (routeName: string, color: string) => {
   else if (routeName === ROUTES.TAB_PROFILE) iconSymbol = '👤';
 
   return (
-    <Text style={[styles.iconText, { color }]}>{iconSymbol}</Text>
+    <Animated.View style={animatedStyle}>
+      <Text style={[styles.iconText, { color }]}>{iconSymbol}</Text>
+    </Animated.View>
   );
 };
+
+const HomeTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_HOME} color={color} focused={focused} />;
+const ScheduleTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_SCHEDULE} color={color} focused={focused} />;
+const TicketsTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_TICKETS} color={color} focused={focused} />;
+const ProfileTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_PROFILE} color={color} focused={focused} />;
 
 const TabNavigator = () => {
   const { colors } = useContext(ThemeContext);
 
   return (
     <Tab.Navigator 
-      screenOptions={({ route }: any) => ({
+      screenOptions={{
         headerShown: false,
         tabBarStyle: { 
           backgroundColor: colors.surface, 
@@ -50,13 +74,28 @@ const TabNavigator = () => {
           fontWeight: '600' as const, 
           marginTop: 4,
         },
-        tabBarIcon: ({ color }: { color: string }) => getIconForRoute(route.name, color),
-      })}
+      }}
     >
-      <Tab.Screen name={ROUTES.TAB_HOME} component={HomeScreen} options={{ title: 'Афіша' }} />
-      <Tab.Screen name={ROUTES.TAB_SCHEDULE} component={ScheduleScreen} options={{ title: 'Зараз в кіно' }} />
-      <Tab.Screen name={ROUTES.TAB_TICKETS} component={TicketsScreen} options={{ title: 'Мої квитки' }} />
-      <Tab.Screen name={ROUTES.TAB_PROFILE} component={ProfileScreen} options={{ title: 'Профіль' }} /> 
+      <Tab.Screen 
+        name={ROUTES.TAB_HOME} 
+        component={HomeScreen} 
+        options={{ title: 'Афіша', tabBarIcon: HomeTabIcon }} 
+      />
+      <Tab.Screen 
+        name={ROUTES.TAB_SCHEDULE} 
+        component={ScheduleScreen} 
+        options={{ title: 'Зараз в кіно', tabBarIcon: ScheduleTabIcon }} 
+      />
+      <Tab.Screen 
+        name={ROUTES.TAB_TICKETS} 
+        component={TicketsScreen} 
+        options={{ title: 'Мої квитки', tabBarIcon: TicketsTabIcon }} 
+      />
+      <Tab.Screen 
+        name={ROUTES.TAB_PROFILE} 
+        component={ProfileScreen} 
+        options={{ title: 'Профіль', tabBarIcon: ProfileTabIcon }} 
+      /> 
     </Tab.Navigator>
   );
 };

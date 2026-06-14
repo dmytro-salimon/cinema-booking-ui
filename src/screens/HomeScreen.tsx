@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -44,7 +44,7 @@ const HomeScreen = ({ navigation }: any) => {
     }
   };
 
-  const handleOpenMovie = (movie: any) => {
+  const handleOpenMovie = useCallback((movie: any) => {
     const mappedMovie = {
       title: movie.name,
       subtitle: movie.genres?.join(', ') || 'Жанр невідомий',
@@ -52,7 +52,7 @@ const HomeScreen = ({ navigation }: any) => {
       description: movie.summary ? movie.summary.replace(/<[^>]+>/g, '') : 'Опис відсутній.',
     };
     navigation.navigate(ROUTES.MOVIE_DETAILS, { movieData: mappedMovie });
-  };
+  }, [navigation]);
 
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -60,7 +60,7 @@ const HomeScreen = ({ navigation }: any) => {
     }
   }).current;
 
-  const renderBannerItem = ({ item }: { item: any }) => (
+  const renderBannerItem = useCallback(({ item }: { item: any }) => (
     <TouchableOpacity 
       style={styles.bannerContainer} 
       activeOpacity={0.8} 
@@ -78,9 +78,9 @@ const HomeScreen = ({ navigation }: any) => {
         <Text style={styles.bannerTitle} numberOfLines={1}>{item.name}</Text>
       </View>
     </TouchableOpacity>
-  );
+  ), [handleOpenMovie]);
 
-  const renderMovieItem = ({ item }: { item: any }) => (
+  const renderMovieItem = useCallback(({ item }: { item: any }) => (
     <View style={styles.cardWrapper}>
       <MovieCard 
         title={item.name}
@@ -91,11 +91,11 @@ const HomeScreen = ({ navigation }: any) => {
         onPress={() => handleOpenMovie(item)}
       />
     </View>
-  );
+  ), [handleOpenMovie]);
 
-  const carouselMovies = movies.slice(0, 5);
-  const premieresMovies = movies.slice(5, 13);
-  const familyMovies = movies.slice(13, 21);
+  const carouselMovies = useMemo(() => movies.slice(0, 5), [movies]);
+  const premieresMovies = useMemo(() => movies.slice(5, 13), [movies]);
+  const familyMovies = useMemo(() => movies.slice(13, 21), [movies]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

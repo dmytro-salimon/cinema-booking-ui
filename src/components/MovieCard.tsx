@@ -1,5 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { memo } from 'react';
+import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
+
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 
 interface MovieCardProps {
   title: string;
@@ -10,7 +16,7 @@ interface MovieCardProps {
   onPress?: () => void;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({
+const MovieCard: React.FC<MovieCardProps> = memo(({
   title,
   subtitle,
   imageUrl,
@@ -25,25 +31,47 @@ const MovieCard: React.FC<MovieCardProps> = ({
     return 'transparent';
   };
 
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, { damping: 12, stiffness: 300 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 12, stiffness: 300 });
+  };
+
   return (
-    <TouchableOpacity style={styles.container} activeOpacity={0.8} onPress={onPress}>
-      <View style={styles.imageContainer}>
-        <Image source={imageUrl} style={styles.poster} resizeMode="cover" />
+    <Pressable 
+      onPress={onPress} 
+      onPressIn={handlePressIn} 
+      onPressOut={handlePressOut}
+    >
+      <Animated.View style={[styles.container, animatedStyle]}>
+        <View style={styles.imageContainer}>
+          <Image source={imageUrl} style={styles.poster} resizeMode="cover" />
+          
+          {badgeStatus !== 'none' && badgeText && (
+            <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
+              <Text style={styles.badgeText}>{badgeText}</Text>
+            </View>
+          )}
+        </View>
         
-        {badgeStatus !== 'none' && badgeText && (
-          <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
-            <Text style={styles.badgeText}>{badgeText}</Text>
-          </View>
-        )}
-      </View>
-      
-      <View style={styles.textContainer}>
-        <Text style={styles.title} numberOfLines={2}>{title}</Text>
-        <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
-      </View>
-    </TouchableOpacity>
+        <View style={styles.textContainer}>
+          <Text style={styles.title} numberOfLines={2}>{title}</Text>
+          <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
+        </View>
+      </Animated.View>
+    </Pressable>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
