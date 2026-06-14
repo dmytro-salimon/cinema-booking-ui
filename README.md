@@ -1,24 +1,7 @@
-https://github.com/user-attachments/assets/e832be5b-df8e-4495-808a-199aa1b89383
+# Cross assignment 7
 
+https://github.com/user-attachments/assets/124171b0-cdf7-4d89-a099-41e497931a47
 
-https://github.com/user-attachments/assets/2cc4e9b9-bdd5-4ec2-b205-1910393b8a0f
+## Завдання 1 та 4
 
-
-# Cinema Booking App - UI Components
-
-Cross-Platform Mobile App Design and Development.
-Homework 3.
-
-## Screenshots
-
-<p align="center">
-  <img src="./screenshots/Screen1.png" width="25%" />
-  <img src="./screenshots/Screen2.png" width="25%" />
-  <img src="./screenshots/Screen3.png" width="25%" />
-  <img src="./screenshots/Screen4.png" width="25%" />
-</p>
-
-<p align="center">
-  <img src="./screenshots/Screen5.png" width="25%" />
-  <img src="./screenshots/Screen6.png" width="25%" />
-</p>
+Був проведений аудит залежностей (Завдання 4). Важких бібліотек (таких як moment.js або lodash) у проєкті не виявлено, оскільки логіка дат та масивів обробляється вбудованими інструментами JavaScript. Завдяки цьому початковий розмір бандлу залишається мінімальним та оптимізованим.
