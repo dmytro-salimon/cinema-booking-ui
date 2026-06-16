@@ -5,7 +5,9 @@ import ScreenHeader from '../components/ScreenHeader';
 import PrimaryButton from '../components/PrimaryButton';
 import { ROUTES } from '../constants/routes';
 
-const SeatSelectionScreen = ({ navigation }: any) => {
+const SeatSelectionScreen = ({ route, navigation }: any) => {
+  const { movieData, selectedTime, selectedDate } = route.params || {};
+
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="Вибір місць" onBackPress={() => navigation.goBack()} />
@@ -16,7 +18,11 @@ const SeatSelectionScreen = ({ navigation }: any) => {
       <View style={styles.footer}>
         <PrimaryButton 
           title="Продовжити" 
-          onPress={() => navigation.navigate(ROUTES.CHECKOUT)} 
+          onPress={() => navigation.navigate(ROUTES.CHECKOUT, { 
+            movieData, 
+            selectedTime, 
+            selectedDate 
+          })} 
         />
       </View>
     </SafeAreaView>

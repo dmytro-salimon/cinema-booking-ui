@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+
+import { ThemeContext } from '../context/ThemeContext';
 
 const MONTHS = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
 const DAYS = ['НД', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
 
 interface WeekPickerProps {
   title?: string;
+  showMonth?: boolean;
   onDateSelect?: (date: Date) => void;
 }
 
-const WeekPicker: React.FC<WeekPickerProps> = ({ title = "День сеансу", onDateSelect }) => {
+const WeekPicker: React.FC<WeekPickerProps> = ({ 
+  title = "", 
+  showMonth = false, 
+  onDateSelect 
+}) => {
+  const { colors, theme } = useContext(ThemeContext);
+  
   const [dates, setDates] = useState<Date[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -18,21 +27,15 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ title = "День сеансу"
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const dayOfWeek = today.getDay();
-      const diffToMonday = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-      const startMonday = new Date(today.setDate(diffToMonday));
-
       const next14Days = [];
       for (let i = 0; i < 14; i++) {
-        const date = new Date(startMonday);
-        date.setDate(startMonday.getDate() + i);
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
         next14Days.push(date);
       }
-      setDates(next14Days);
       
-      const currentToday = new Date();
-      currentToday.setHours(0, 0, 0, 0);
-      setSelectedDate(currentToday);
+      setDates(next14Days);
+      setSelectedDate(today); 
     };
 
     generateDates();
@@ -46,13 +49,17 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ title = "День сеансу"
   };
 
   const displayMonth = selectedDate ? MONTHS[selectedDate.getMonth()] : MONTHS[new Date().getMonth()];
+  
+  const dynamicBorderColor = theme === 'dark' ? '#2C2D35' : '#E4E4E5';
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.monthText}>{displayMonth}</Text>
-      </View>
+      {(title || showMonth) && (
+        <View style={styles.header}>
+          {title ? <Text style={[styles.title, { color: colors.text }]}>{title}</Text> : <View />}
+          {showMonth && <Text style={[styles.monthText, { color: colors.textSecondary }]}>{displayMonth}</Text>}
+        </View>
+      )}
 
       <ScrollView 
         horizontal 
@@ -60,36 +67,30 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ title = "День сеансу"
         contentContainerStyle={styles.scrollContent}
       >
         {dates.map((date, index) => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          
-          const isPast = date < today;
           const isSelected = selectedDate?.getTime() === date.getTime();
           
           return (
             <TouchableOpacity
               key={index}
-              disabled={isPast}
               onPress={() => handleSelect(date)}
               activeOpacity={0.7}
               style={[
                 styles.pill,
-                isPast && styles.pillDisabled,
-                !isPast && !isSelected && styles.pillAvailable,
-                isSelected && styles.pillSelected,
+                !isSelected && styles.pillTransparent,
+                isSelected 
+                  ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                  : { borderColor: dynamicBorderColor }
               ]}
             >
               <Text style={[
                 styles.dayName,
-                isPast && styles.textDisabled,
-                isSelected && styles.textSelected
+                isSelected ? styles.textWhite : { color: colors.textSecondary }
               ]}>
                 {DAYS[date.getDay()]}
               </Text>
               <Text style={[
                 styles.dayNumber,
-                isPast && styles.textDisabled,
-                isSelected && styles.textSelected
+                isSelected ? styles.textWhite : { color: colors.text }
               ]}>
                 {date.getDate()}
               </Text>
@@ -110,14 +111,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'baseline',
     marginBottom: 16,
+    paddingHorizontal: 16, 
   },
   title: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   monthText: {
-    color: '#71727A',
     fontSize: 16,
   },
   scrollContent: {
@@ -125,30 +125,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pill: {
-    paddingHorizontal: 16,
+    width: 50,
     paddingVertical: 12,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  pillAvailable: {
-    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#2F3036',
   },
-  pillSelected: {
-    backgroundColor: '#006FFD',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  pillDisabled: {
+  pillTransparent: {
     backgroundColor: 'transparent',
-    borderWidth: 0, 
+  },
+  textWhite: {
+    color: '#FFFFFF',
   },
   dayName: {
     fontWeight: '600',
     fontSize: 10,
-    color: '#71727A',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -157,14 +149,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
-  textDisabled: {
-    color: '#494A50',
-  },
-  textSelected: {
-    color: '#FFFFFF',
-  }
 });
 
 export default WeekPicker;

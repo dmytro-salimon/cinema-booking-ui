@@ -1,94 +1,160 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import WeekPicker from '../components/WeekPicker';
 import SectionHeader from '../components/SectionHeader';
-import { ROUTES } from '../constants/routes';
+import MainHeader from '../components/MainHeader';
+import ScheduleMovieCard from '../components/ScheduleMovieCard';
 
-const MOCK_SCHEDULE = [
-  {
-    id: '1',
-    title: 'Кіллхаус',
-    subtitle: 'Військовий, Драма, Екшн',
-    coverUrl: { uri: 'https://kino-teatr.ua/public/main/films/2026-04/poster_56258_69e5f2a395cb7.jpg' },
-    timeSlots: ['14:30', '21:00']
-  },
-  {
-    id: '2',
-    title: 'Вівці-детективи',
-    subtitle: 'Анімація, Комедія',
-    coverUrl: { uri: 'https://kino-teatr.ua/public/main/films/2026-05/poster_57215_69f6d3ecb430c.jpg' },
-    timeSlots: ['20:50']
-  }
-];
+import { ROUTES } from '../constants/routes';
+import { ThemeContext } from '../context/ThemeContext';
+import { fetchMovies } from '../api/moviesApi';
+
+const MONTHS_GENITIVE = ['Січня', 'Лютого', 'Березня', 'Квітня', 'Травня', 'Червня', 'Липня', 'Серпня', 'Вересня', 'Жовтня', 'Листопада', 'Грудня'];
+const DAYS_FULL = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця', 'Субота'];
 
 const ScheduleScreen = ({ navigation }: any) => {
+  const { colors } = useContext(ThemeContext);
+  
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  const [allMovies, setAllMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<any[]>([]);
+  
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleMoviePress = (movie: any) => {
-    navigation.navigate(ROUTES.MOVIE_DETAILS, { movieData: movie });
+  useEffect(() => {
+    loadSchedule();
+  }, []);
+
+  const loadSchedule = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const data = await fetchMovies();
+      setAllMovies(data);
+    } catch {
+      setError("Не вдалося завантажити розклад сеансів.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleTimeSlotPress = (movie: any, time: string) => {
+  useEffect(() => {
+    if (allMovies.length === 0) return;
+
+    const daySeed = selectedDate.getDate();
+
+    const startIndex = daySeed % Math.max(1, allMovies.length - 6);
+    const selectedShows = allMovies.slice(startIndex, startIndex + 6);
+
+    const mappedSchedule = selectedShows.map((movie: any, index: number) => {
+      const hour1 = 10 + ((daySeed + index) % 4);
+      const hour2 = 15 + ((daySeed + index) % 4);
+      const hour3 = 19 + ((daySeed + index) % 4);
+
+      const timeSlots = index % 2 === 0
+        ? [`${hour1}:00`, `${hour2}:30`]
+        : [`${hour1}:15`, `${hour2}:45`, `${hour3}:20`];
+
+      return {
+        id: `${movie.id}-${daySeed}`, 
+        title: movie.name,
+        subtitle: movie.genres?.join(', ') || 'Жанр невідомий',
+        coverUrl: { uri: movie.image?.original || movie.image?.medium || 'https://via.placeholder.com/600x400' },
+        description: movie.summary ? movie.summary.replace(/<[^>]+>/g, '') : 'Опис відсутній.',
+        timeSlots
+      };
+    });
+
+    setMovies(mappedSchedule);
+  }, [selectedDate, allMovies]);
+
+  const handleMoviePress = useCallback((movie: any) => {
+    const movieDataForDetails = {
+      title: movie.title,
+      subtitle: movie.subtitle,
+      imageUrl: movie.coverUrl,
+      description: movie.description,
+    };
+    navigation.navigate(ROUTES.MOVIE_DETAILS, { movieData: movieDataForDetails });
+  }, [navigation]);
+
+  const handleTimeSlotPress = useCallback((movie: any, time: string) => {
+    const movieDataForDetails = {
+      title: movie.title,
+      subtitle: movie.subtitle,
+      imageUrl: movie.coverUrl,
+      description: movie.description,
+    };
     navigation.navigate(ROUTES.SEAT_SELECTION, {
-      movieData: movie,
+      movieData: movieDataForDetails,
       selectedTime: time,
       selectedDate: selectedDate.toISOString(),
     });
+  }, [navigation, selectedDate]);
+
+  const getDynamicDateTitle = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+
+    if (targetDate.getTime() === today.getTime()) {
+      return "Сьогодні";
+    } else if (targetDate.getTime() === tomorrow.getTime()) {
+      return "Завтра";
+    } else {
+      const day = targetDate.getDate();
+      const month = MONTHS_GENITIVE[targetDate.getMonth()];
+      const dayOfWeek = DAYS_FULL[targetDate.getDay()];
+      return `${day} ${month}, ${dayOfWeek}`;
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       
-      <View style={styles.navBar}>
-        <View>
-          <Text style={styles.logoText}>CineBook</Text>
-          <Text style={styles.locationText}>Київ, вул Коцюбинського 13</Text>
+      <MainHeader />
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color={colors.primary} style={styles.centerBox} />
+      ) : error ? (
+        <View style={styles.centerBox}>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
-        <TouchableOpacity style={styles.swapButton} activeOpacity={0.7}>
-          <Text style={styles.swapIcon}>⇅</Text>
-        </TouchableOpacity>
-      </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          
+          <WeekPicker 
+            title=""
+            onDateSelect={(date) => setSelectedDate(date)}
+          />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        <WeekPicker 
-          title=""
-          onDateSelect={(date) => setSelectedDate(date)}
-        />
+          <View style={styles.sectionHeader}>
+            <SectionHeader title={getDynamicDateTitle(selectedDate)} />
+          </View>
 
-        <SectionHeader title="Сьогодні" />
+          <View style={styles.moviesList}>
+            {movies.map((movie) => (
+              <ScheduleMovieCard 
+                key={movie.id}
+                movie={movie}
+                onMoviePress={handleMoviePress}
+                onTimeSlotPress={handleTimeSlotPress}
+              />
+            ))}
+          </View>
 
-        <View style={styles.moviesList}>
-          {MOCK_SCHEDULE.map((movie) => (
-            <View key={movie.id} style={styles.cardContainer}>
-              
-              <TouchableOpacity activeOpacity={0.8} onPress={() => handleMoviePress(movie)}>
-                <Image source={movie.coverUrl} style={styles.coverImage} resizeMode="cover" />
-              </TouchableOpacity>
-              
-              <View style={styles.cardFooter}>
-                <Text style={styles.movieTitle} numberOfLines={1}>{movie.title}</Text>
-                
-                <View style={styles.timeSlotsContainer}>
-                  {movie.timeSlots.map((time, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.timeSlotPill}
-                      activeOpacity={0.7}
-                      onPress={() => handleTimeSlotPress(movie, time)}
-                    >
-                      <Text style={styles.timeSlotText}>{time}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-            </View>
-          ))}
-        </View>
-
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -96,79 +162,28 @@ const ScheduleScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#010101' 
   },
-  navBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 4,
-  },
-  locationText: {
-    color: '#71727A',
-    fontSize: 12,
-  },
-  swapButton: {
-    width: 40,
-    height: 40,
+  centerBox: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
-  swapIcon: {
-    color: '#FFFFFF',
-    fontSize: 20,
+  errorText: {
+    color: '#E86339',
+    fontSize: 14,
+    textAlign: 'center',
   },
   scrollContent: {
     paddingBottom: 40,
   },
+  sectionHeader: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
   moviesList: {
     paddingHorizontal: 16,
     gap: 16,
-  },
-  cardContainer: {
-    backgroundColor: '#1F2024',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  coverImage: {
-    width: '100%',
-    height: 180,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  movieTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    flex: 1,
-    marginRight: 12,
-  },
-  timeSlotsContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  timeSlotPill: {
-    borderWidth: 1,
-    borderColor: '#2C2D35',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  timeSlotText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });
 

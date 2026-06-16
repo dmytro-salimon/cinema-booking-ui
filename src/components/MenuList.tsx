@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   menuGroup: {
-    marginTop: 8,
+    marginVertical: 8,
     borderRadius: 16,
     overflow: 'hidden',
   },

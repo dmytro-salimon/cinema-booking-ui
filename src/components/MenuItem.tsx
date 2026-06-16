@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 
-// Імпортуємо контекст
 import { ThemeContext } from '../context/ThemeContext';
 
 interface MenuItemProps {
@@ -25,7 +24,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
   onPress,
   hasDivider = false,
 }) => {
-  // Дістаємо кольори та поточну тему (для divider)
   const { colors, theme } = useContext(ThemeContext);
 
   const renderAccessory = () => {
@@ -34,7 +32,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
         <Switch
           value={isSwitchOn}
           onValueChange={onSwitchChange}
-          // Використовуємо кольори з контексту
           trackColor={{ false: colors.textSecondary, true: colors.primary }}
           ios_backgroundColor={colors.textSecondary}
         />
@@ -48,7 +45,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
     if (accessory === 'dropdown') iconText = '⌄';
 
     if (iconText) {
-      // Динамічний колір іконки
       return <Text style={[styles.icon, { color: colors.text }]}>{iconText}</Text>;
     }
 
@@ -57,7 +53,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
   const Component = onPress ? TouchableOpacity : View;
 
-  // Визначаємо колір лінії залежно від теми
   const dividerColor = theme === 'dark' ? '#2C2D35' : '#E4E4E5';
 
   return (
@@ -71,7 +66,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
       disabled={!onPress}
     >
       <View style={styles.leftContent}>
-        {/* Динамічні кольори для тексту */}
         <Text style={[styles.title, !subtitle && styles.titleNoMargin, { color: colors.text }]}>
           {title}
         </Text>
@@ -83,7 +77,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
       </View>
 
       <View style={styles.rightContent}>
-        {/* Динамічний колір для деталей */}
         {detail && <Text style={[styles.detail, { color: colors.text }]}>{detail}</Text>}
         {renderAccessory()}
       </View>
@@ -100,7 +93,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     borderBottomWidth: 1,
-    // Прибрали borderBottomColor: '#2C2D35'
   },
   leftContent: {
     flex: 1,
@@ -113,25 +105,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     marginBottom: 4,
-    // Прибрали color
   },
   titleNoMargin: {
     marginBottom: 0,
   },
   subtitle: {
     fontSize: 12,
-    // Прибрали color
   },
   detail: {
     fontSize: 14,
     fontWeight: 'bold',
     marginRight: 12,
-    // Прибрали color
   },
   icon: {
     fontSize: 18,
     fontWeight: 'bold',
-    // Прибрали color
   },
 });
 

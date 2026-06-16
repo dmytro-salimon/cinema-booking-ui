@@ -29,17 +29,11 @@ const ticketsSlice = createSlice({
         state.items.push({ ...action.payload, quantity: 1 });
       }
     },
-    removeTicket: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(item => item.id !== action.payload);
-    },
-    updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
-      const ticket = state.items.find(item => item.id === action.payload.id);
-      if (ticket && action.payload.quantity > 0) {
-        ticket.quantity = action.payload.quantity;
-      }
+    clearTickets: (state) => {
+      state.items = [];
     },
   },
 });
 
-export const { addTicket, removeTicket, updateQuantity } = ticketsSlice.actions;
+export const { addTicket, clearTickets } = ticketsSlice.actions;
 export default ticketsSlice.reducer;

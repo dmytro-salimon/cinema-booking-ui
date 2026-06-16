@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback, useContext } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -11,14 +11,19 @@ import {
   ScrollView 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import SectionHeader from '../components/SectionHeader';
+import MainHeader from '../components/MainHeader';
 import MovieCard from '../components/MovieCard';
 import { ROUTES } from '../constants/routes';
 import { fetchMovies } from '../api/moviesApi';
+import { ThemeContext } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }: any) => {
+  const { colors, theme } = useContext(ThemeContext);
+
   const [movies, setMovies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,25 +65,38 @@ const HomeScreen = ({ navigation }: any) => {
     }
   }).current;
 
-  const renderBannerItem = useCallback(({ item }: { item: any }) => (
-    <TouchableOpacity 
-      style={styles.bannerContainer} 
-      activeOpacity={0.8} 
-      onPress={() => handleOpenMovie(item)}
-    >
-      <Image 
-        source={{ uri: item.image?.original || item.image?.medium || 'https://via.placeholder.com/600x400' }} 
-        style={styles.bannerImage} 
-        resizeMode="cover" 
-      />
-      <View style={styles.bannerOverlay}>
-        <View style={styles.badgeContainer}>
-          <Text style={styles.badgeText}>В КІНО</Text>
-        </View>
-        <Text style={styles.bannerTitle} numberOfLines={1}>{item.name}</Text>
+  const renderBannerItem = useCallback(({ item }: { item: any }) => {
+    const dynamicBorderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.08)';
+
+    return (
+      <View style={styles.bannerContainer}>
+        <TouchableOpacity 
+          style={[styles.bannerInner, { borderColor: dynamicBorderColor }]} 
+          activeOpacity={0.8} 
+          onPress={() => handleOpenMovie(item)}
+        >
+          <Image 
+            source={{ uri: item.image?.original || item.image?.medium || 'https://via.placeholder.com/600x400' }} 
+            style={[styles.bannerImage, { backgroundColor: colors.surface }]} 
+            resizeMode="cover" 
+          />
+          
+          <View style={styles.badgeWrapper}>
+            <View style={[styles.badgeContainer, { backgroundColor: colors.primary }]}>
+              <Text style={styles.badgeText}>В КІНО</Text>
+            </View>
+          </View>
+
+          <LinearGradient 
+            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,1)']} 
+            style={styles.titleGradient}
+          >
+            <Text style={styles.bannerTitle} numberOfLines={1}>{item.name}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
-    </TouchableOpacity>
-  ), [handleOpenMovie]);
+    );
+  }, [handleOpenMovie, colors, theme]);
 
   const renderMovieItem = useCallback(({ item }: { item: any }) => (
     <View style={styles.cardWrapper}>
@@ -98,20 +116,12 @@ const HomeScreen = ({ navigation }: any) => {
   const familyMovies = useMemo(() => movies.slice(13, 21), [movies]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       
-      <View style={styles.navBar}>
-        <View>
-          <Text style={styles.logoText}>CineBook</Text>
-          <Text style={styles.locationText}>Київ, вул Коцюбинського 13</Text>
-        </View>
-        <TouchableOpacity style={styles.swapButton} activeOpacity={0.7}>
-          <Text style={styles.swapIcon}>⇅</Text>
-        </TouchableOpacity>
-      </View>
+      <MainHeader />
 
       {isLoading ? (
-        <ActivityIndicator size="large" color="#006FFD" style={styles.centerBox} />
+        <ActivityIndicator size="large" color={colors.primary} style={styles.centerBox} />
       ) : error ? (
         <View style={styles.centerBox}>
           <Text style={styles.errorText}>{error}</Text>
@@ -135,7 +145,11 @@ const HomeScreen = ({ navigation }: any) => {
               {carouselMovies.map((_, index) => (
                 <View 
                   key={index} 
-                  style={[styles.dot, activeSlide === index && styles.activeDot]} 
+                  style={[
+                    styles.dot, 
+                    { backgroundColor: activeSlide === index ? colors.text : colors.textSecondary },
+                    activeSlide === index && styles.activeDot
+                  ]} 
                 />
               ))}
             </View>
@@ -174,34 +188,6 @@ const HomeScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#010101' 
-  },
-  navBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 4,
-  },
-  locationText: {
-    color: '#71727A',
-    fontSize: 12,
-  },
-  swapButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  swapIcon: {
-    color: '#FFFFFF',
-    fontSize: 20,
   },
   centerBox: {
     flex: 1,
@@ -223,31 +209,29 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: width,
-    height: 220,
+    height: 188,
     paddingHorizontal: 16,
+    marginTop: 16,
+  },
+  bannerInner: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
   },
   bannerImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 16,
-    backgroundColor: '#1F2024',
-  },
-  bannerOverlay: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    
-    marginHorizontal: 16,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'space-between',
-    padding: 16,
+  },
+  badgeWrapper: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 2,
   },
   badgeContainer: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#006FFD',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
@@ -257,11 +241,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
+  titleGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'flex-end',
+  },
   bannerTitle: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'center',
+    paddingVertical: 24,
   },
   pagination: {
     flexDirection: 'row',
@@ -273,11 +265,9 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#2C2D35',
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#FFFFFF',
     width: 8,
     height: 8,
     borderRadius: 4,

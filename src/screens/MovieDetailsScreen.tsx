@@ -37,7 +37,7 @@ const MovieDetailsScreen = ({ route, navigation }: any) => {
       <View style={styles.footer}>
         <PrimaryButton 
           title="Придбати квиток" 
-          onPress={() => navigation.navigate(ROUTES.SEAT_SELECTION)} 
+          onPress={() => navigation.navigate(ROUTES.SEAT_SELECTION, { movieData })} 
         />
       </View>
     </SafeAreaView>

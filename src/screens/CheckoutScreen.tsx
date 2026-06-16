@@ -24,6 +24,9 @@ const CheckoutScreen = ({ route, navigation }: any) => {
       time: selectedTime || '19:00',
       date: selectedDate ? new Date(selectedDate).toLocaleDateString('uk-UA') : 'Сьогодні',
       price: 300, 
+      imageUrl: movieData?.imageUrl,
+      row: 2,
+      seat: Math.floor(Math.random() * 20) + 1,
     };
 
     dispatch(addTicket(newTicket));

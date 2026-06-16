@@ -1,91 +1,90 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useRef, useContext } from 'react';
+import { View, Text, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScreenHeader from '../components/ScreenHeader';
 
 import { ThemeContext } from '../context/ThemeContext';
-
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
-import { removeTicket, updateQuantity } from '../store/ticketsSlice';
+import { clearTickets } from '../store/ticketsSlice'; 
+
+import TicketCard from '../components/TicketCard';
+
+const { width } = Dimensions.get('window');
+const TICKET_WIDTH = 296;
+
+const SIDE_SPACE = (width - TICKET_WIDTH) / 2;
+const ITEM_GAP = SIDE_SPACE - 16;
+const SNAP_INTERVAL = TICKET_WIDTH + ITEM_GAP;
 
 const TicketsScreen = () => {
   const { colors } = useContext(ThemeContext);
-  
   const tickets = useSelector((state: RootState) => state.tickets.items);
+  
   const dispatch = useDispatch();
+  
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const handleRemove = (id: string) => {
-    dispatch(removeTicket(id));
-  };
-
-  const handleIncrease = (id: string, currentQuantity: number) => {
-    dispatch(updateQuantity({ id, quantity: currentQuantity + 1 }));
-  };
-
-  const handleDecrease = (id: string, currentQuantity: number) => {
-    if (currentQuantity > 1) {
-      dispatch(updateQuantity({ id, quantity: currentQuantity - 1 }));
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setActiveIndex(viewableItems[0].index || 0);
     }
-  };
+  }).current;
 
-  const renderTicket = ({ item }: { item: any }) => (
-    <View style={[styles.ticketCard, { backgroundColor: colors.surface }]}>
-      
-      <View style={styles.ticketInfo}>
-        <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
-        <Text style={[styles.details, { color: colors.textSecondary }]}>
-          {item.date} | {item.time}
-        </Text>
-        <Text style={[styles.price, { color: colors.primary }]}>
-          {item.price * item.quantity} грн
-        </Text>
-      </View>
-
-      <View style={styles.actions}>
-        <View style={styles.counter}>
-          <TouchableOpacity 
-            onPress={() => handleDecrease(item.id, item.quantity)} 
-            style={[styles.btn, { borderColor: colors.textSecondary }]}
-          >
-            <Text style={[styles.btnText, { color: colors.text }]}>-</Text>
-          </TouchableOpacity>
-          
-          <Text style={[styles.quantity, { color: colors.text }]}>{item.quantity}</Text>
-          
-          <TouchableOpacity 
-            onPress={() => handleIncrease(item.id, item.quantity)} 
-            style={[styles.btn, { borderColor: colors.textSecondary }]}
-          >
-            <Text style={[styles.btnText, { color: colors.text }]}>+</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeBtn}>
-          <Text style={styles.removeBtnText}>Скасувати</Text>
-        </TouchableOpacity>
-      </View>
-
-    </View>
-  );
+  const hasTickets = tickets.length > 0;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <ScreenHeader title="Мої квитки" />
+      
+      <ScreenHeader 
+        title="Мої квитки" 
+        leftIcon={hasTickets ? 'delete' : undefined}
+        onLeftPress={hasTickets ? () => dispatch(clearTickets()) : undefined}
+      />
       
       <View style={styles.content}>
-        {tickets.length === 0 ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            У вас поки немає придбаних квитків
-          </Text>
+        {!hasTickets ? (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              У вас поки немає придбаних квитків
+            </Text>
+          </View>
         ) : (
-          <FlatList
-            data={tickets}
-            renderItem={renderTicket}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
+          <>
+            <FlatList
+              data={tickets}
+              renderItem={({ item }) => <TicketCard item={item} />}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
+              
+              snapToAlignment="start" 
+              snapToInterval={SNAP_INTERVAL}
+              decelerationRate="fast"
+              disableIntervalMomentum={true}
+              
+              style={styles.list}
+              contentContainerStyle={{ 
+                paddingHorizontal: SIDE_SPACE,
+                gap: ITEM_GAP
+              }}
+            />
+            
+            <View style={styles.pagination}>
+              {tickets.map((_, index) => (
+                <View 
+                  key={index} 
+                  style={[
+                    styles.dot, 
+                    { backgroundColor: activeIndex === index ? colors.text : colors.textSecondary },
+                    activeIndex === index && styles.activeDot
+                  ]} 
+                />
+              ))}
+            </View>
+          </>
         )}
       </View>
     </SafeAreaView>
@@ -98,75 +97,39 @@ const styles = StyleSheet.create({
   },
   content: { 
     flex: 1, 
+    paddingTop: 16, 
+    paddingBottom: 24,
   },
-  listContent: {
-    padding: 16,
-    gap: 16,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
   },
   emptyText: { 
     textAlign: 'center',
-    marginTop: 40,
     fontSize: 16,
   },
-  ticketCard: {
-    padding: 16,
-    borderRadius: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  ticketInfo: {
+  list: {
     flex: 1,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  details: {
-    fontSize: 12,
-    marginBottom: 8,
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  actions: {
-    alignItems: 'flex-end',
-  },
-  counter: {
+  pagination: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  btn: {
-    borderWidth: 1,
-    borderRadius: 8,
-    width: 28,
-    height: 28,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 24,
+    height: 8,
   },
-  btnText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    lineHeight: 18,
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 4,
   },
-  quantity: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginHorizontal: 12,
-  },
-  removeBtn: {
-    backgroundColor: '#E86339',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  removeBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
+  activeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });
 

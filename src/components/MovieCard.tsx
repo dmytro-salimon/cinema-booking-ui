@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useContext } from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 
 import Animated, {
@@ -6,6 +6,10 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
+
+import { ThemeContext } from '../context/ThemeContext';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface MovieCardProps {
   title: string;
@@ -24,9 +28,10 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
   badgeText,
   onPress,
 }) => {
+  const { colors, theme } = useContext(ThemeContext);
 
   const getBadgeColor = () => {
-    if (badgeStatus === 'onSale') return '#006FFD';
+    if (badgeStatus === 'onSale') return colors.primary; 
     if (badgeStatus === 'upcoming') return '#E86339';
     return 'transparent';
   };
@@ -47,29 +52,30 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
     scale.value = withSpring(1, { damping: 12, stiffness: 300 });
   };
 
+  const borderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.08)';
+
   return (
-    <Pressable 
+    <AnimatedPressable 
       onPress={onPress} 
       onPressIn={handlePressIn} 
       onPressOut={handlePressOut}
+      style={[styles.container, animatedStyle]} 
     >
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <View style={styles.imageContainer}>
-          <Image source={imageUrl} style={styles.poster} resizeMode="cover" />
-          
-          {badgeStatus !== 'none' && badgeText && (
-            <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
-              <Text style={styles.badgeText}>{badgeText}</Text>
-            </View>
-          )}
-        </View>
+      <View style={[styles.imageContainer, { borderColor }]}>
+        <Image source={imageUrl} style={styles.poster} resizeMode="cover" />
         
-        <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2}>{title}</Text>
-          <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
-        </View>
-      </Animated.View>
-    </Pressable>
+        {badgeStatus !== 'none' && badgeText && (
+          <View style={[styles.badge, { backgroundColor: getBadgeColor() }]}>
+            <Text style={styles.badgeText}>{badgeText}</Text>
+          </View>
+        )}
+      </View>
+      
+      <View style={styles.textContainer}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{title}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>{subtitle}</Text>
+      </View>
+    </AnimatedPressable>
   );
 });
 
@@ -82,7 +88,6 @@ const styles = StyleSheet.create({
     height: 228,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
     overflow: 'hidden',
   },
   poster: {
@@ -110,12 +115,10 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 'bold',
     fontSize: 14,
-    color: '#FFFFFF',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 12,
-    color: '#71727A',
     letterSpacing: 0.12,
   },
 });

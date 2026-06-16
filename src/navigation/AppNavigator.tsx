@@ -1,10 +1,7 @@
-import React, { useContext, useEffect } from 'react';
-import { Text, StyleSheet } from 'react-native';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 
 import { ROUTES } from '../constants/routes';
 import { ThemeContext } from '../context/ThemeContext';
@@ -18,42 +15,32 @@ import SeatSelectionScreen from '../screens/SeatSelectionScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import SuccessScreen from '../screens/SuccessScreen';
 
+import CategoriesIcon from '../assets/icons/Categories.svg';
+import ExploreIcon from '../assets/icons/Explore.svg';
+import ShoppingBagIcon from '../assets/icons/Shopping Bag Filled.svg';
+import ProfileIcon from '../assets/icons/Profile.svg';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const AnimatedTabIcon = ({ routeName, color, focused }: { routeName: string, color: string, focused: boolean }) => {
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    scale.value = withTiming(focused ? 1.15 : 1, { 
-      duration: 250, 
-      easing: Easing.out(Easing.ease) 
-    });
-  }, [focused, scale]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-    };
-  });
-
-  let iconSymbol = '';
-  if (routeName === ROUTES.TAB_HOME) iconSymbol = '🎬'; 
-  else if (routeName === ROUTES.TAB_SCHEDULE) iconSymbol = '🧭';
-  else if (routeName === ROUTES.TAB_TICKETS) iconSymbol = '🛍️';
-  else if (routeName === ROUTES.TAB_PROFILE) iconSymbol = '👤';
-
-  return (
-    <Animated.View style={animatedStyle}>
-      <Text style={[styles.iconText, { color }]}>{iconSymbol}</Text>
-    </Animated.View>
-  );
+const TabIcon = ({ routeName, color }: { routeName: string, color: string }) => {
+  if (routeName === ROUTES.TAB_HOME) {
+    return <CategoriesIcon width={20} height={20} color={color} />;
+  } else if (routeName === ROUTES.TAB_SCHEDULE) {
+    return <ExploreIcon width={20} height={20} color={color} />;
+  } else if (routeName === ROUTES.TAB_TICKETS) {
+    return <ShoppingBagIcon width={20} height={20} color={color} />;
+  } else if (routeName === ROUTES.TAB_PROFILE) {
+    return <ProfileIcon width={20} height={20} color={color} />;
+  }
+  
+  return null;
 };
 
-const HomeTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_HOME} color={color} focused={focused} />;
-const ScheduleTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_SCHEDULE} color={color} focused={focused} />;
-const TicketsTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_TICKETS} color={color} focused={focused} />;
-const ProfileTabIcon = ({ color, focused }: any) => <AnimatedTabIcon routeName={ROUTES.TAB_PROFILE} color={color} focused={focused} />;
+const HomeTabIcon = ({ color }: any) => <TabIcon routeName={ROUTES.TAB_HOME} color={color} />;
+const ScheduleTabIcon = ({ color }: any) => <TabIcon routeName={ROUTES.TAB_SCHEDULE} color={color} />;
+const TicketsTabIcon = ({ color }: any) => <TabIcon routeName={ROUTES.TAB_TICKETS} color={color} />;
+const ProfileTabIcon = ({ color }: any) => <TabIcon routeName={ROUTES.TAB_PROFILE} color={color} />;
 
 const TabNavigator = () => {
   const { colors } = useContext(ThemeContext);
@@ -113,12 +100,5 @@ const AppNavigator = () => {
     </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  iconText: {
-    fontSize: 24,
-    textAlign: 'center',
-  },
-});
 
 export default AppNavigator;
