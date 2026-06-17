@@ -51,9 +51,11 @@ const HomeScreen = ({ navigation }: any) => {
 
   const handleOpenMovie = useCallback((movie: any) => {
     const mappedMovie = {
+      id: movie.id,
       title: movie.name,
       subtitle: movie.genres?.join(', ') || 'Жанр невідомий',
       imageUrl: { uri: movie.image?.original || movie.image?.medium || 'https://via.placeholder.com/210x295' },
+      backdropUrl: { uri: movie.backdropUrl || 'https://via.placeholder.com/600x400' },
       description: movie.summary ? movie.summary.replace(/<[^>]+>/g, '') : 'Опис відсутній.',
     };
     navigation.navigate(ROUTES.MOVIE_DETAILS, { movieData: mappedMovie });
@@ -76,7 +78,7 @@ const HomeScreen = ({ navigation }: any) => {
           onPress={() => handleOpenMovie(item)}
         >
           <Image 
-            source={{ uri: item.image?.original || item.image?.medium || 'https://via.placeholder.com/600x400' }} 
+            source={{ uri: item.backdropUrl || item.image?.original || 'https://via.placeholder.com/600x400' }} 
             style={[styles.bannerImage, { backgroundColor: colors.surface }]} 
             resizeMode="cover" 
           />
@@ -186,103 +188,25 @@ const HomeScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-  },
-  centerBox: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    color: '#E86339',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  carouselSection: {
-    marginBottom: 24,
-  },
-  bannerContainer: {
-    width: width,
-    height: 188,
-    paddingHorizontal: 16,
-    marginTop: 16,
-  },
-  bannerInner: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-    position: 'relative',
-    borderWidth: 1,
-  },
-  bannerImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  badgeWrapper: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    zIndex: 2,
-  },
-  badgeContainer: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  titleGradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    justifyContent: 'flex-end',
-  },
-  bannerTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    paddingVertical: 24,
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  listSection: {
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  horizontalScroll: {
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  cardWrapper: {
-    marginRight: 12,
-  },
+  container: { flex: 1 },
+  centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  errorText: { color: '#E86339', fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  scrollContent: { paddingBottom: 40 },
+  carouselSection: { marginBottom: 24 },
+  bannerContainer: { width: width, height: 188, paddingHorizontal: 16, marginTop: 16 },
+  bannerInner: { flex: 1, borderRadius: 16, overflow: 'hidden', position: 'relative', borderWidth: 1 },
+  bannerImage: { width: '100%', height: '100%', position: 'absolute' },
+  badgeWrapper: { position: 'absolute', top: 16, right: 16, zIndex: 2 },
+  badgeContainer: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999 },
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' },
+  titleGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, justifyContent: 'flex-end' },
+  bannerTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', textAlign: 'center', paddingVertical: 24 },
+  pagination: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 12 },
+  dot: { width: 6, height: 6, borderRadius: 3, marginHorizontal: 4 },
+  activeDot: { width: 8, height: 8, borderRadius: 4 },
+  listSection: { paddingHorizontal: 16 },
+  horizontalScroll: { paddingTop: 8, paddingBottom: 16 },
+  cardWrapper: { marginRight: 12 },
 });
 
 export default HomeScreen;

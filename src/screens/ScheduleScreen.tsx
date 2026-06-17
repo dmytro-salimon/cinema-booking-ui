@@ -61,10 +61,11 @@ const ScheduleScreen = ({ navigation }: any) => {
         : [`${hour1}:15`, `${hour2}:45`, `${hour3}:20`];
 
       return {
-        id: `${movie.id}-${daySeed}`, 
+        id: `${movie.id}-${daySeed}`,
+        movieId: movie.id,
         title: movie.name,
         subtitle: movie.genres?.join(', ') || 'Жанр невідомий',
-        coverUrl: { uri: movie.image?.original || movie.image?.medium || 'https://via.placeholder.com/600x400' },
+        coverUrl: { uri: movie.backdropUrl || movie.image?.original || 'https://via.placeholder.com/600x400' },
         description: movie.summary ? movie.summary.replace(/<[^>]+>/g, '') : 'Опис відсутній.',
         timeSlots
       };
@@ -75,6 +76,7 @@ const ScheduleScreen = ({ navigation }: any) => {
 
   const handleMoviePress = useCallback((movie: any) => {
     const movieDataForDetails = {
+      id: movie.movieId,
       title: movie.title,
       subtitle: movie.subtitle,
       imageUrl: movie.coverUrl,
@@ -85,6 +87,7 @@ const ScheduleScreen = ({ navigation }: any) => {
 
   const handleTimeSlotPress = useCallback((movie: any, time: string) => {
     const movieDataForDetails = {
+      id: movie.movieId,
       title: movie.title,
       subtitle: movie.subtitle,
       imageUrl: movie.coverUrl,
